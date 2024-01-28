@@ -1,7 +1,4 @@
 <?php
-
-namespace WPPluginFramework;
-
 /**
  * Loads the plugin framework, or handles plugin if missing.
  * 
@@ -14,6 +11,13 @@ namespace WPPluginFramework;
  * }
  * ```
  */
+
+namespace WPPluginFramework;
+
+if (class_exists(__NAMESPACE__ . '\Loader', true)) {
+    return;
+}
+
 class Loader
 {
     private static array $plugins = [];
