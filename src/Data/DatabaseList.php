@@ -16,6 +16,9 @@ class DatabaseList extends DatabaseTable
     #[Column, Required, Unique]
     public string $label;
 
+    #[Column]
+    public bool $inactive = false;
+
     /**
      * Trim class suffixes from name.
      * @return string
