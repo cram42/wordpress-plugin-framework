@@ -26,7 +26,7 @@ abstract class Resource extends WPFObject
     #region Public Properties
 
     #[AutoIncrement, PrimaryKey, Required]
-    public int $id = 0;
+    public int $id;
 
     #endregion
     #region Protected Properties
@@ -110,10 +110,15 @@ abstract class Resource extends WPFObject
                         $field_attributes[] = $instance;
                     }
 
+                    $default_value = $property->isInitialized($this)
+                        ? $property->getValue($this)
+                        : null;
+
                     $this->resource_fields[] = [
                         'property_name' => $property_name,
                         'field_name'    => $field_name,
                         'type'          => $property->getType()->getName(),
+                        'default'       => $default_value,
                         'attributes'    => $field_attributes,
                     ];
                 }

@@ -15,6 +15,7 @@ use WPPluginFramework\Data\Attributes\{
     ResourceField,
     Length,
     MySQLConstraint,
+    Required,
 };
 
 use WPPluginFramework\Events\{
@@ -57,9 +58,13 @@ class DatabaseTable extends Resource implements IEnableEvent, IDisableEvent, IUn
                 $column_name = $field['field_name'];
                 $column_type = typePHPtoMySQL($field['type']);
                 $column_flags = [];
+                $allow_null = true;
 
                 foreach ($field['attributes'] as $attribute) {
                     if ($attribute instanceof IMySQLFieldFlag) {
+                        if ($attribute instanceof Required) {
+                            $allow_null = false;
+                        }
                         $column_flags[] = $attribute->getFlagString();
                     }
                     if ($attribute instanceof MySQLConstraint) {
@@ -68,6 +73,19 @@ class DatabaseTable extends Resource implements IEnableEvent, IDisableEvent, IUn
                         $constraints[$constraint_name]['instance'] = $attribute;
                         $constraints[$constraint_name]['fields'][] = $column_name;
                     }
+                }
+
+                $default_value = $field['default'];
+                if ($default_value != null || $allow_null) {
+                    switch ($field['type']) {
+                        case 'bool':
+                            $default_value = $default_value ? 'true' : 'false';
+                            break;
+                        case 'string':
+                            $default_value = '\'' . $default_value . '\'';
+                            break;
+                    }
+                    $column_flags[] = sprintf('DEFAULT %s', $default_value);
                 }
 
                 $columns[] = sprintf(
