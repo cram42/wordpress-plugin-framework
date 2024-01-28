@@ -7,7 +7,8 @@ use Attribute;
 #[Attribute]
 class Unique extends MySQLConstraint implements IResourceFieldAttribute
 {
-    public static function getPrefix(): string {
+    public static function getPrefix(): string
+    {
         return 'UC';
     }
 

@@ -138,7 +138,7 @@ abstract class Resource extends WPFObject
         $args = [];
 
         foreach ($this->getResourceFields() as $field) {
-            
+
             if (!$include_id && ($field['property_name'] == 'id')) {
                 continue;
             }

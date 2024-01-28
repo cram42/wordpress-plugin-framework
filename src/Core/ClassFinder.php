@@ -118,7 +118,7 @@ abstract class ClassFinder
                                 return $full_path;
                             }
                         }
-                        
+
                         Logger::warning(
                             sprintf('Class "%s" not found in file "%s"', $class, $full_path),
                             static::class

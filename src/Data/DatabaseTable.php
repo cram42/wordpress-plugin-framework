@@ -6,10 +6,6 @@ use WPPluginFramework\{
     Logger
 };
 
-use function WPPluginFramework\{
-    typePHPtoMySQL
-};
-
 use WPPluginFramework\Data\Attributes\{
     IMySQLFieldFlag,
     ResourceField,
@@ -22,6 +18,10 @@ use WPPluginFramework\Events\{
     IEnableEvent,
     IDisableEvent,
     IUninstallEvent,
+};
+
+use function WPPluginFramework\{
+    typePHPtoMySQL
 };
 
 class DatabaseTable extends Resource implements IEnableEvent, IDisableEvent, IUninstallEvent
@@ -219,7 +219,7 @@ class DatabaseTable extends Resource implements IEnableEvent, IDisableEvent, IUn
         $query = sprintf('SELECT * FROM %s;', $this->getTableName());
         $results = $wpdb->get_results($query, ARRAY_A);
         return array_map(
-            fn($result) => $this->parseResult($result),
+            fn ($result) => $this->parseResult($result),
             $results
         );
     }
@@ -248,7 +248,7 @@ class DatabaseTable extends Resource implements IEnableEvent, IDisableEvent, IUn
     public function edit(int $id, array $data): array|null
     {
         unset($data['id']);
-        
+
         global $wpdb;
         $result = $wpdb->update(
             $this->getTableName(),

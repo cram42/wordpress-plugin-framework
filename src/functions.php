@@ -9,7 +9,7 @@ function getPropertiesSorted(\ReflectionClass $reflector): array
     $properties = $reflector->getProperties();
     $classes_sorted = array_reverse(
         array_unique(
-            array_map(fn($property) => $property->class, $properties)
+            array_map(fn ($property) => $property->class, $properties)
         )
     );
 

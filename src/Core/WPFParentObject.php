@@ -93,7 +93,7 @@ class WPFParentObject extends WPFObject
 
             $this->wpfobject_requirements = array_values(array_unique($requirements));
         }
-        
+
         return $this->wpfobject_requirements;
     }
 }

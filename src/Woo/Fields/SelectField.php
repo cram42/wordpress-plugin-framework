@@ -34,7 +34,7 @@ class SelectField extends Field
      * @return void
      */
     #[Override]
-    protected function drawMetaBox() : void
+    protected function drawMetaBox(): void
     {
         woocommerce_wp_select([
             'id'            => $this->getId(),

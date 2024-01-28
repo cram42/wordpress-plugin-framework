@@ -5,7 +5,7 @@ namespace WPPluginFramework;
 class WPFObject
 {
     use Traits\RequiresWPF;
-    
+
     /**
      * Storage for getInstance().
      * @var array{ {string}: object }
@@ -67,8 +67,9 @@ class WPFObject
             $this->wpfobject_events = [];
             $class = get_called_class();
             foreach (class_implements($class, true) as $interface) {
-                if (is_subclass_of($interface, WPF_INTERFACE_EVENT))
-                $this->wpfobject_events[] = $interface;
+                if (is_subclass_of($interface, WPF_INTERFACE_EVENT)) {
+                    $this->wpfobject_events[] = $interface;
+                }
             }
         }
         return $this->wpfobject_events;
@@ -85,7 +86,7 @@ class WPFObject
 
         // Create a new instance if required
         if (!isset(static::$wpfobject_instance_storage[$class])) {
-            static::$wpfobject_instance_storage[$class] = new static;
+            static::$wpfobject_instance_storage[$class] = new static();
         }
 
         // Return instance
@@ -116,7 +117,7 @@ class WPFObject
 
             $this->wpfobject_requirements = array_unique($requirements);
         }
-        
+
         return $this->wpfobject_requirements;
     }
 }

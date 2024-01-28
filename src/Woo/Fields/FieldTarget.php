@@ -5,7 +5,7 @@ namespace WPPluginFramework\Woo\Fields;
 class FieldTarget
 {
     public const DEFAULT = FieldTarget::GENERAL;
-    
+
     // General
     public const GENERAL = 'woocommerce_product_options_general_product_data';
     public const GENERAL_DOWNLOADS = 'woocommerce_product_options_downloads';

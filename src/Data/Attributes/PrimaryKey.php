@@ -7,7 +7,8 @@ use Attribute;
 #[Attribute]
 class PrimaryKey extends MySQLConstraint implements IResourceFieldAttribute
 {
-    public static function getPrefix(): string {
+    public static function getPrefix(): string
+    {
         return 'PK';
     }
 
