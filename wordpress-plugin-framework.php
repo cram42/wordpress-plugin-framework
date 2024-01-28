@@ -35,6 +35,7 @@ ClassFinder::addNamespacePath(__NAMESPACE__, dirname(__FILE__) . '/src/Core', tr
 ClassFinder::addNamespacePath(__NAMESPACE__, dirname(__FILE__) . '/src/Events', true);
 ClassFinder::addNamespacePath(__NAMESPACE__, dirname(__FILE__) . '/src/Logging', true);
 ClassFinder::addNamespacePath(__NAMESPACE__, dirname(__FILE__) . '/src/Plugin', true);
-ClassFinder::addNamespacePath(__NAMESPACE__, dirname(__FILE__) . '/src/Woo', true);
 
 ClassFinder::addNamespacePath(__NAMESPACE__ . '\Data', dirname(__FILE__) . '/src/Data', true);
+
+ClassFinder::addNamespacePath(__NAMESPACE__ . '\Woo', dirname(__FILE__) . '/src/Woo', true);
