@@ -93,6 +93,15 @@ abstract class ClassFinder
                         }
 
                         // Check if the interface exists in this file
+                        foreach ($file_data['enums'] as $file_enum) {
+                            if ($file_enum['full_name'] == $class) {
+                                Logger::debug(sprintf('loadClass("%s") enum', $class), static::class);
+                                require $full_path;
+                                return $full_path;
+                            }
+                        }
+
+                        // Check if the interface exists in this file
                         foreach ($file_data['interfaces'] as $file_interface) {
                             if ($file_interface['full_name'] == $class) {
                                 Logger::debug(sprintf('loadClass("%s") interface', $class), static::class);
@@ -186,6 +195,7 @@ abstract class ClassFinder
         $lines = file($path, FILE_SKIP_EMPTY_LINES | FILE_IGNORE_NEW_LINES);
 
         $classes = array();
+        $enums = array();
         $interfaces = array();
         $traits = array();
 
@@ -194,6 +204,7 @@ abstract class ClassFinder
 
         $regex_namespace = '/^namespace (\S+);/';
         $regex_class = '/^(?:abstract\s)*class (\S+)/';
+        $regex_enum = '/^enum ([^\s:]+)/';
         $regex_interface = '/^interface (\S+)/';
         $regex_trait = '/^trait (\S+)/';
 
@@ -204,17 +215,20 @@ abstract class ClassFinder
                 // compare regexes
                 preg_match($regex_namespace, $line, $matches_namespace);
                 preg_match($regex_class, $line, $matches_class);
+                preg_match($regex_enum, $line, $matches_enum);
                 preg_match($regex_interface, $line, $matches_interface);
                 preg_match($regex_trait, $line, $matches_trait);
 
                 // Update the current namespace
                 if (count($matches_namespace) > 0) {
                     $namespace = $matches_namespace[1];
+                    Logger::debug(sprintf('Found namespace: "%s"', $namespace), get_class(), get_called_class());
                 }
 
                 // Store the class name and current namespace
                 if (count($matches_class) > 0) {
                     $class = $matches_class[1];
+                    Logger::debug(sprintf('Found class: "%s"', $class), get_class(), get_called_class());
                     array_push($classes, array(
                         'class' => $class,
                         'namespace' => $namespace,
@@ -222,9 +236,21 @@ abstract class ClassFinder
                     ));
                 }
 
+                // Store the enum name and current namespace
+                if (count($matches_enum) > 0) {
+                    $enum = $matches_enum[1];
+                    Logger::debug(sprintf('Found enum: "%s"', $enum), get_class(), get_called_class());
+                    array_push($enums, array(
+                        'enum' => $enum,
+                        'namespace' => $namespace,
+                        'full_name' => $namespace . '\\' . $enum,
+                    ));
+                }
+
                 // Store the interface name and current namespace
                 if (count($matches_interface) > 0) {
                     $interface = $matches_interface[1];
+                    Logger::debug(sprintf('Found interface: "%s"', $interface), get_class(), get_called_class());
                     array_push($interfaces, array(
                         'interface' => $interface,
                         'namespace' => $namespace,
@@ -250,6 +276,7 @@ abstract class ClassFinder
 
         return array(
             'classes' => $classes,
+            'enums' => $enums,
             'interfaces' => $interfaces,
             'traits' => $traits,
         );
