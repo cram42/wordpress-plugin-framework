@@ -213,10 +213,14 @@ class DatabaseTable extends Resource implements IEnableEvent, IDisableEvent, IUn
     #endregion
     #region Resource De-abstraction
 
-    public function getAll(): array
+    public function getAll(?string $order_by = null): array
     {
         global $wpdb;
-        $query = sprintf('SELECT * FROM %s;', $this->getTableName());
+        $query = sprintf(
+            'SELECT * FROM %s%s;',
+            $this->getTableName(),
+            $order_by ? ' ORDER BY ' . $order_by : ''
+        );
         $results = $wpdb->get_results($query, ARRAY_A);
         return array_map(
             fn ($result) => $this->parseResult($result),
