@@ -19,6 +19,22 @@ class DatabaseList extends DatabaseTable
     #[Column]
     public bool $inactive = false;
 
+    private array $list_items = [];
+
+    /**
+     * Get all items. Inactives optional.
+     */
+    public function getListItems(bool $include_inactive = false): array
+    {
+        if (count($this->list_items) == 0) {
+            $this->list_items = array_filter(
+                $this->getAll(),
+                fn ($item) => $include_inactive || ($item['inactive'] == false)
+            );
+        }
+        return $this->list_items;
+    }
+
     /**
      * Trim class suffixes from name.
      * @return string
