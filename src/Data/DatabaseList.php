@@ -19,6 +19,8 @@ class DatabaseList extends DatabaseTable
     #[Column]
     public bool $inactive = false;
 
+    protected string $sort_by = 'label';
+
     private array $list_items = [];
 
     /**
@@ -28,7 +30,7 @@ class DatabaseList extends DatabaseTable
     {
         if (count($this->list_items) == 0) {
             $this->list_items = array_filter(
-                $this->getAll(),
+                $this->getAll($this->sort_by),
                 fn ($item) => $include_inactive || ($item['inactive'] == false)
             );
         }
