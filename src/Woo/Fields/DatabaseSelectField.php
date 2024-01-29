@@ -47,7 +47,7 @@ class DatabaseSelectField extends SelectField
     protected function getOptions(): array
     {
         if (count($this->options) == 0) {
-            foreach ($this->getResource()->getAll() as $item) {
+            foreach ($this->getResource()->getListItems() as $item) {
                 $this->options[$item['value']] = $item['label'];
             }
         }
