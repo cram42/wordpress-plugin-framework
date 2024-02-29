@@ -160,7 +160,7 @@ abstract class Field extends WPFObject implements
             get_class(),
             get_called_class()
         );
-        delete_metadata('post', 0, $this->getID(), true);
+        delete_metadata('post', 0, $this->getID(), '', true);
     }
 
     #endregion
