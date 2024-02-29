@@ -1,9 +1,9 @@
 <?php
 /**
  * Loads the plugin framework, or handles plugin if missing.
- * 
+ *
  * Usage:
- * 
+ *
  * ```
  * require_once 'lib/wordpress-plugin-framework/wpf_loader.inc.php';
  * if (!\WPPluginFramework\Loader::load(__FILE__)) {
@@ -24,8 +24,8 @@ class Loader
 
     public static function load(string $plugin_file): bool
     {
-        if( ! function_exists('get_plugin_data') ){
-            require_once( ABSPATH . 'wp-admin/includes/plugin.php' );
+        if(! function_exists('get_plugin_data')) {
+            require_once(ABSPATH . 'wp-admin/includes/plugin.php');
         }
         $plugin_data = \get_plugin_data($plugin_file);
         static::$plugins[] = $plugin_data['Name'];
