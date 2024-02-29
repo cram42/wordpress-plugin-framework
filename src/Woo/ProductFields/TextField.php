@@ -1,32 +1,26 @@
 <?php
 
-namespace WPPluginFramework\Woo\Fields;
+namespace WPPluginFramework\Woo\ProductFields;
 
-class SelectField extends Field
+use WPPluginFramework\Logger;
+
+abstract class TextField extends Field
 {
     #region Protected Properties
 
-    protected array $options = [];
-    protected bool $allow_blank = true;
+    protected ?string $placeholder = null;
 
     #endregion
     #region Protected Methods
 
     /**
-     * Get the options, injecting a blank if allowed.
-     * @return array
+     * Sanitize value for storage.
+     * @return mixed
      */
-    protected function getOptions(): array
+    #[Override]
+    protected function sanitizeValue(mixed $value): mixed
     {
-        if ($this->allow_blank) {
-            if (!array_key_exists('', $this->options)) {
-                $this->options = array_merge(
-                    ['' => ''],
-                    $this->options
-                );
-            }
-        }
-        return $this->options;
+        return esc_attr($value);
     }
 
     /**
@@ -36,12 +30,12 @@ class SelectField extends Field
     #[Override]
     protected function drawMetaBox(): void
     {
-        woocommerce_wp_select([
+        woocommerce_wp_text_input([
             'id'            => $this->getId(),
             'label'         => $this->getLabel(),
             'description'   => $this->getDescription(),
             'desc_tip'      => $this->description_as_tip,
-            'options'       => $this->getOptions(),
+            'placeholder'   => $this->placeholder,
             'class'         => $this->class,
             'wrapper_class' => $this->wrapper_class,
             'style'         => $this->style,

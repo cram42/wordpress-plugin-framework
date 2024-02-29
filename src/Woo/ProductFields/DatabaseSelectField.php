@@ -1,6 +1,6 @@
 <?php
 
-namespace WPPluginFramework\Woo\Fields;
+namespace WPPluginFramework\Woo\ProductFields;
 
 use WPPluginFramework\Logger;
 

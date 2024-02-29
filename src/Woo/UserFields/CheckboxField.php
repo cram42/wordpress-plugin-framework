@@ -1,14 +1,10 @@
 <?php
 
-namespace WPPluginFramework\Users\Fields;
+namespace WPPluginFramework\Woo\UserFields;
 
-use WPPluginFramework\{
-    Logger, LogLevel,
-};
+use WPPluginFramework\Logger;
 
 use function WPPluginFramework\strsuffix;
-
-Logger::setLevel(__NAMESPACE__ . '\CheckboxField', LogLevel::DEBUG);
 
 abstract class CheckboxField extends Field
 {

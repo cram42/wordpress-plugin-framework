@@ -1,6 +1,6 @@
 <?php
 
-namespace WPPluginFramework\Users\Fields;
+namespace WPPluginFramework\Woo\UserFields;
 
 use WPPluginFramework\{
     Logger,

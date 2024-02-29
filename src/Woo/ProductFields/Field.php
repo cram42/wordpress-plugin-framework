@@ -1,9 +1,9 @@
 <?php
 
-namespace WPPluginFramework\Users\Fields;
+namespace WPPluginFramework\Woo\ProductFields;
 
 use WPPluginFramework\{
-    Logger, LogLevel,
+    Logger,
     WPFObject,
 };
 use WPPluginFramework\Events\{
@@ -11,26 +11,29 @@ use WPPluginFramework\Events\{
     IDisableEvent,
     IUninstallEvent,
 };
+use WPPluginFramework\Traits\RequiresWooCommerce;
 
 use function WPPluginFramework\strsuffix;
-
-Logger::setLevel(__NAMESPACE__ . '\Field', LogLevel::DEBUG);
 
 abstract class Field extends WPFObject implements
     ILoadEvent,
     IDisableEvent,
     IUninstallEvent
 {
+    use RequiresWooCommerce;
+
     #region Protected Properties
 
     protected ?string $id = null;
     protected ?string $label = null;
-    protected bool $show_description = false;
     protected ?string $description = null;
-    protected bool $disabled = false;
+    protected bool $description_as_tip = true;
 
-    protected bool $show_in_profile = true;
-    protected ?string $profile_table = null;
+    protected string $target = FieldTarget::DEFAULT;
+
+    protected string $class = 'short';
+    protected ?string $wrapper_class = null;
+    protected ?string $style = null;
 
     protected bool $wipe_on_disable = false;
     protected bool $wipe_on_uninstall = true;
@@ -86,35 +89,27 @@ abstract class Field extends WPFObject implements
     }
 
     /**
-     * Draw the field row for profile table.
-     * @param $user_id The user's id.
+     * Run when metadata is processed. Save the data here.
+     * @param $post_id The post's id. Provided by WC.
      * @return void
      */
-    public function onProfileTable($user_id): void
+    public function onProcessMeta($post_id): void
     {
-        Logger::debug('onProfileTable()', get_class(), get_called_class());
-        echo('<tr>');
-        echo('<th><label for="' . $this->getID() . '">' . $this->getLabel() . '</label></th>');
-        echo('<td>');
-        echo('<input type="text" disabled="disabled" class="regular-text" placeholder="' . $this->getId() . '"></input>');
-        if ($this->show_description) {
-            echo('<p class="description">' . $this->getDescription() . '</p>');
-        }
-        echo('</td>');
-        echo('</tr>');
+        Logger::debug('onProcessMeta()', get_class(), get_called_class());
+        $value = isset($_POST[$this->getID()]) ? $_POST[$this->getID()] : null;
+        $value = $this->sanitizeValue($value);
+        update_post_meta($post_id, $this->getID(), $value);
     }
 
     /**
-     * Run when profile is updated. Save the data here.
-     * @param $user_id The user's id. Provided by WP.
+     * Run when the $target event is triggered.
+     * Invoke the function to draw the field.
      * @return void
      */
-    public function onProfileUpdate($user_id): void
+    public function onShowMetaBox(): void
     {
-        Logger::debug('onProfileUpdate()', get_class(), get_called_class());
-        $value = $_POST[$this->getID()];
-        $value = $this->sanitizeValue($value);
-        update_user_meta($user_id, $this->getID(), $value);
+        Logger::debug('onShowMetaBox()', get_class(), get_called_class());
+        $this->drawMetaBox();
     }
 
     #endregion
@@ -127,6 +122,28 @@ abstract class Field extends WPFObject implements
     protected function sanitizeValue(mixed $value): mixed
     {
         return $value;
+    }
+
+    /**
+     * Draw the meta box field.
+     * @return void
+     */
+    protected function drawMetaBox(): void
+    {
+        echo('<p class="form-field ' . esc_attr($this->getId()) . '_field">');
+        echo('<label for="' . $this->getId() . '">' . $this->getLabel() . '</label>');
+
+        if ($this->description_as_tip) {
+            echo(wc_help_tip($this->getDescription()));
+        }
+
+        echo('<input type="text" disabled="disabled" class="short" placeholder="' . $this->getId() . '"></input>');
+
+        if (!$this->description_as_tip) {
+            echo('<span class="description">' . $this->getDescription() . '</span>');
+        }
+
+        echo('</p>');
     }
 
     #endregion
@@ -143,25 +160,18 @@ abstract class Field extends WPFObject implements
             get_class(),
             get_called_class()
         );
-        delete_metadata('user', 0, $this->getID(), '', true);
+        delete_metadata('post', 0, $this->getID(), '', true);
     }
 
     #endregion
     #region ILoadEvent Implementation
     public function onLoadEvent(): void
     {
-        Logger::debug('onLoadEvent()', get_class(), get_called_class());
+        // Hook display of field
+        add_action($this->target, [$this, 'onShowMetaBox']);
 
-        if ($this->show_in_profile) {
-            if ($this->profile_table != null) {
-                add_action('wpf_profiletable_' . $this->profile_table, [$this, 'onProfileTable']);
-            } else {
-                Logger::error('profile_table is not set', get_class(), get_called_class());
-            }
-
-            add_action('personal_options_update', [$this, 'onProfileUpdate']);
-            add_action('edit_user_profile_update', [$this, 'onProfileUpdate']);
-        }
+        // Hook saving of field
+        add_action('woocommerce_process_product_meta', [$this, 'onProcessMeta']);
     }
     #endregion
     #region IDisableEvent Implementation

@@ -1,12 +1,8 @@
 <?php
 
-namespace WPPluginFramework\Users\Fields;
+namespace WPPluginFramework\Woo\UserFields;
 
-use WPPluginFramework\{
-    Logger, LogLevel,
-};
-
-Logger::setLevel(__NAMESPACE__ . '\TextField', LogLevel::DEBUG);
+use WPPluginFramework\Logger;
 
 abstract class TextField extends Field
 {
