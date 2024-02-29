@@ -6,18 +6,34 @@ use WPPluginFramework\{
     Logger, LogLevel,
     WPFObject,
 };
+use WPPluginFramework\Events\{
+    ILoadEvent,
+    IDisableEvent,
+    IUninstallEvent,
+};
 
 use function WPPluginFramework\strsuffix;
 
 Logger::setLevel(__NAMESPACE__ . '\Field', LogLevel::DEBUG);
 
-abstract class Field extends WPFObject
+abstract class Field extends WPFObject implements
+    ILoadEvent,
+    IDisableEvent,
+    IUninstallEvent
 {
     #region Protected Properties
 
     protected ?string $id = null;
     protected ?string $label = null;
+    protected bool $show_description = false;
     protected ?string $description = null;
+    protected bool $disabled = false;
+
+    protected bool $show_in_profile = true;
+    protected ?string $profile_table = null;
+
+    protected bool $wipe_on_disable = false;
+    protected bool $wipe_on_uninstall = true;
 
     #endregion
     #region Public Methods
@@ -70,25 +86,35 @@ abstract class Field extends WPFObject
     }
 
     /**
-     * Draw the field content.
+     * Draw the field row for profile table.
      * @param $user_id The user's id.
      * @return void
      */
-    public function drawField($user_id): void
+    public function onProfileTable($user_id): void
     {
-        Logger::debug('drawField()', get_class(), get_called_class());
+        Logger::debug('onProfileTable()', get_class(), get_called_class());
+        echo('<tr>');
+        echo('<th><label for="' . $this->getID() . '">' . $this->getLabel() . '</label></th>');
+        echo('<td>');
         echo('<input type="text" disabled="disabled" class="regular-text" placeholder="' . $this->getId() . '"></input>');
-        echo('<p class="description">' . $this->getDescription() . '</p>');
+        if ($this->show_description) {
+            echo('<p class="description">' . $this->getDescription() . '</p>');
+        }
+        echo('</td>');
+        echo('</tr>');
     }
 
     /**
-     * Save the data here.
-     * @param $user_id The user's id.
+     * Run when profile is updated. Save the data here.
+     * @param $user_id The user's id. Provided by WP.
      * @return void
      */
-    public function saveField($user_id): void
+    public function onProfileUpdate($user_id): void
     {
-        Logger::debug('saveField()', get_class(), get_called_class());
+        Logger::debug('onProfileUpdate()', get_class(), get_called_class());
+        $value = $_POST[$this->getID()];
+        $value = $this->sanitizeValue($value);
+        update_user_meta($user_id, $this->getID(), $value);
     }
 
     #endregion
@@ -103,5 +129,55 @@ abstract class Field extends WPFObject
         return $value;
     }
 
+    #endregion
+    #region Private Methods
+
+    /**
+     * Wipe any metadata created by this field.
+     * @return void
+     */
+    private function wipeData(): void
+    {
+        Logger::info(
+            sprintf('Wiping metadata id "%s".', $this->getID()),
+            get_class(),
+            get_called_class()
+        );
+        delete_metadata('user', 0, $this->getID(), '', true);
+    }
+
+    #endregion
+    #region ILoadEvent Implementation
+    public function onLoadEvent(): void
+    {
+        Logger::debug('onLoadEvent()', get_class(), get_called_class());
+
+        if ($this->show_in_profile) {
+            if ($this->profile_table != null) {
+                add_action('wpf_profiletable_' . $this->profile_table, [$this, 'onProfileTable']);
+            } else {
+                Logger::error('profile_table is not set', get_class(), get_called_class());
+            }
+
+            add_action('personal_options_update', [$this, 'onProfileUpdate']);
+            add_action('edit_user_profile_update', [$this, 'onProfileUpdate']);
+        }
+    }
+    #endregion
+    #region IDisableEvent Implementation
+    public function onDisableEvent(): void
+    {
+        if ($this->wipe_on_disable) {
+            $this->wipeData();
+        }
+    }
+    #endregion
+    #region IUninstallEvent Implementation
+    public function onUninstallEvent(): void
+    {
+        if ($this->wipe_on_uninstall) {
+            $this->wipeData();
+        }
+    }
     #endregion
 }

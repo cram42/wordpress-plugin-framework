@@ -18,15 +18,19 @@ abstract class TextField extends Field
     #region Public Methods
 
     /**
-     * Draw the meta box field.
+     * Draw the field row for profile table.
      * @param $user_id The user's id.
      * @return void
      */
     #[Override]
-    public function drawField($user_id): void
+    public function onProfileTable($user_id): void
     {
-        Logger::debug('drawField()', get_class(), get_called_class());
+        Logger::debug('onProfileTable()', get_class(), get_called_class());
         $value = get_user_meta($user_id, $this->getID(), true);
+
+        echo('<tr>');
+        echo('<th><label for="' . $this->getID() . '">' . $this->getLabel() . '</label></th>');
+        echo('<td>');
         echo('<input 
                 type="text" 
                 id="' . $this->getID() . '" 
@@ -34,24 +38,14 @@ abstract class TextField extends Field
                 class="regular-text" 
                 placeholder="' . $this->placeholder . '" 
                 value="' . $value . '" 
+                ' . ($this->disabled ? 'disabled="disabled"' : '') . '
             ></input>');
-        echo('<p class="description">' . $this->getDescription() . '</p>');
+        if ($this->show_description) {
+            echo('<p class="description">' . $this->getDescription() . '</p>');
+        }
+        echo('</td>');
+        echo('</tr>');
     }
-
-    /**
-     * Save the data here.
-     * @param $user_id The user's id.
-     * @return void
-     */
-    #[Override]
-    public function saveField($user_id): void
-    {
-        Logger::debug('saveField()', get_class(), get_called_class());
-        $value = $_POST[$this->getID()];
-        $value = $this->sanitizeValue($value);
-        update_user_meta($user_id, $this->getID(), $value);
-    }
-
 
     #endregion
     #region Protected Methods
