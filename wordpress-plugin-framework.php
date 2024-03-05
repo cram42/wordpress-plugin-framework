@@ -25,6 +25,7 @@ namespace WPPluginFramework;
 
 defined('WPF_NAME') ?: define('WPF_NAME', 'WordPress Plugin Framework');
 defined('WPF_FILE') ?: define('WPF_FILE', __FILE__);
+defined('WPF_PATH') ?: define('WPF_PATH', plugin_dir_path(__FILE__));
 
 require_once 'src/Core/ClassFinder.php';
 require_once 'src/constants.php';

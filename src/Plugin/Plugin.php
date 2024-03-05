@@ -55,6 +55,12 @@ abstract class Plugin extends WPFParentObject
         static::getInstance()->fireEvent(WPF_INTERFACE_UNINSTALL_EVENT);
     }
 
+    public static function onInit(): void
+    {
+        Logger::debug('onInit()', get_class(), get_called_class());
+        static::getInstance()->fireEvent(WPF_INTERFACE_INIT_EVENT);
+    }
+
     public static function onPluginsLoaded(): void
     {
         Logger::debug('onPluginsLoaded()', get_class(), get_called_class());
@@ -175,6 +181,7 @@ abstract class Plugin extends WPFParentObject
         register_deactivation_hook($this->getPluginFile(), [$plugin_class, 'onPluginDeactivation']);
         register_uninstall_hook($this->getPluginFile(), [$plugin_class, 'onPluginUninstall']);
 
+        add_action('init', [$plugin_class, 'onInit']);
         add_action('plugins_loaded', [$plugin_class, 'onPluginsLoaded']);
         add_action('rest_api_init', [$plugin_class, 'onRESTAPIInit']);
 
