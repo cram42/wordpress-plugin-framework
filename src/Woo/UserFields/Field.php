@@ -18,8 +18,6 @@ use function WPPluginFramework\{
     strsuffix
 };
 
-Logger::setLevel(__NAMESPACE__ . '\Field', LogLevel::DEBUG);
-
 abstract class Field extends WPFObject implements
     ILoadEvent,
     IDisableEvent,
@@ -145,7 +143,7 @@ abstract class Field extends WPFObject implements
     }
 
     #region Action Hooks
-    
+
     /**
      * Runs when Edit Profile is submitted.
      * Add validation errors here.
@@ -172,9 +170,12 @@ abstract class Field extends WPFObject implements
         Logger::debug('onUserProfileUpdate()', get_class(), get_called_class());
         $this->setContext(FieldContext::PROFILE);
         $this->setContextUserId($user_id);
+        $this->setContextValue($this->getSavedValue($user_id));
         $value = $this->getPostedValue();
-        $value = $this->sanitizeValue($value);
-        Logger::debug("value = " . print_r($value, true), get_class(), get_called_class());
+        if ($value !== null) {
+            $value = $this->sanitizeValue($value);
+            update_user_meta($user_id, $this->getID(), $value);
+        }
     }
 
     /**
@@ -224,10 +225,10 @@ abstract class Field extends WPFObject implements
      * Add validation errors here.
      * @param string $username
      * @param string $email
-     * @param array $validation_errors
+     * @param WP_Error $validation_errors
      * @return void
      */
-    public function onWooRegisterPost(string $username, string $email, array $validation_errors): void
+    public function onWooRegisterPost(string $username, string $email, \WP_Error $validation_errors): void
     {
         Logger::debug('onWooRegisterPost()', get_class(), get_called_class());
         $this->setContext(FieldContext::REGISTRATION);
@@ -249,8 +250,10 @@ abstract class Field extends WPFObject implements
         Logger::debug('onWooSaveAccountDetails()', get_class(), get_called_class());
         $this->setContext(FieldContext::MY_ACCOUNT);
         $value = $this->getPostedValue();
-        $value = $this->sanitizeValue($value);
-        update_user_meta($customer_id, $this->getID(), $value);
+        if ($value !== null) {
+            $value = $this->sanitizeValue($value);
+            update_user_meta($customer_id, $this->getID(), $value);
+        }
     }
 
     /**
@@ -291,12 +294,15 @@ abstract class Field extends WPFObject implements
      * Runs when the WPF My Account Tab is submitted.
      * Validate here. Return an array of errors.
      * @param array $errors
+     * @param int $user_id
      * @return array
      */
-    public function onWPFMyAccountTabErrors(array $errors): array
+    public function onWPFMyAccountTabErrors(array $errors, int $user_id): array
     {
         Logger::debug('onWPFMyAccountTabErrors()', get_class(), get_called_class());
         $this->setContext(FieldContext::MY_ACCOUNT);
+        $this->setContextUserId($user_id);
+        $this->setContextValue($this->getSavedValue($user_id));
         $value = $this->getPostedValue();
         $new_errors = $this->getValidationErrors($value);
         return array_merge($errors, $new_errors);
@@ -313,9 +319,12 @@ abstract class Field extends WPFObject implements
         Logger::debug('onWPFMyAccountTabSave()', get_class(), get_called_class());
         $this->setContext(FieldContext::MY_ACCOUNT);
         $this->setContextUserId($user_id);
+        $this->setContextValue($this->getSavedValue($user_id));
         $value = $this->getPostedValue();
-        $value = $this->sanitizeValue($value);
-        update_user_meta($user_id, $this->getID(), $value);
+        if ($value !== null) {
+            $value = $this->sanitizeValue($value);
+            update_user_meta($user_id, $this->getID(), $value);
+        }
     }
 
     /**
@@ -368,6 +377,7 @@ abstract class Field extends WPFObject implements
 
     /**
      * Get the value from $_POST.
+     * Return the value or null to skip saving.
      * @return mixed
      */
     protected function getPostedValue(): mixed
@@ -409,8 +419,8 @@ abstract class Field extends WPFObject implements
     {
         Logger::debug('getValidationErrors()', get_class(), get_called_class());
         $errors = [];
-        
-        if ($this->getRequired()) {
+
+        if ($this->getRequired() && !$this->getDisabled()) {
             if ($value == '') {
                 $errors[$this->getID() . '_error_required'] = '<strong>' . $this->getLabel() . '</strong> is a required field.';
             }
@@ -454,7 +464,6 @@ abstract class Field extends WPFObject implements
 
         // Add template
         add_filter('wc_get_template', function ($located, $template) {
-            Logger::debug('$template = ' . $template, get_class(), get_called_class());
             if (
                 $template == static::TEMPLATE_MY_ACCOUNT ||
                 $template == static::TEMPLATE_PROFILE ||
@@ -485,7 +494,7 @@ abstract class Field extends WPFObject implements
             if ($this->myaccount_tab != null) {
                 // Seperate Tab
                 add_action('wpf_myaccounttab_' . $this->myaccount_tab, [$this, 'onWPFMyAccountTab']);
-                add_filter('wpf_myaccounttab_' . $this->myaccount_tab . '_errors', [$this, 'onWPFMyAccountTabErrors']);
+                add_filter('wpf_myaccounttab_' . $this->myaccount_tab . '_errors', [$this, 'onWPFMyAccountTabErrors'], 10, 2);
                 add_filter('wpf_myaccounttab_' . $this->myaccount_tab . '_save', [$this, 'onWPFMyAccountTabSave']);
             } else {
                 // Account Details Tab
