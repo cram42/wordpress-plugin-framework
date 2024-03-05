@@ -49,6 +49,9 @@ abstract class CheckboxField extends Field
     #[Override]
     protected function getPostedValue(): mixed
     {
+        if ($this->getDisabled()) {
+            return null;
+        }
         return array_key_exists($this->getID(), $_POST);
     }
 
@@ -73,7 +76,7 @@ abstract class CheckboxField extends Field
     protected function getValidationErrors($value): array
     {
         $errors = [];
-        if ($this->getRequired()) {
+        if ($this->getRequired() && !$this->getDisabled()) {
             if (!$value) {
                 $errors[$this->getID() . '_error_required'] = '<strong>' . $this->getLabel() . '</strong> is a required field.';
             }
