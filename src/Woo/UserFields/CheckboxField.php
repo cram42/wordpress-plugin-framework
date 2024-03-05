@@ -2,17 +2,23 @@
 
 namespace WPPluginFramework\Woo\UserFields;
 
-use WPPluginFramework\Logger;
+use WPPluginFramework\{
+    Logger, LogLevel,
+};
 
 use function WPPluginFramework\strsuffix;
 
+Logger::setLevel(__NAMESPACE__ . '\CheckboxField', LogLevel::DEBUG);
+
 abstract class CheckboxField extends Field
 {
+    protected const TEMPLATE_MY_ACCOUNT = 'myaccount/checkbox-field.php';
+    protected const TEMPLATE_PROFILE = 'wp-admin/user-edit/checkbox-field.php';
+    protected const TEMPLATE_REGISTRATION = 'myaccount/form-login/checkbox-field.php';
+
     #region Protected Properties
 
     protected ?string $text = null;
-    protected string $true_value = 'true';
-    protected string $false_value = 'false';
 
     #endregion
     #region Public Methods
@@ -33,54 +39,46 @@ abstract class CheckboxField extends Field
         return $this->text;
     }
 
+    #endregion
+    #region Protected Methods
+
     /**
-     * Draw the field row for profile table.
-     * @param $user_id The user's id.
-     * @return void
+     * Get the value from $_POST.
+     * @return mixed
      */
     #[Override]
-    public function onProfileTable($user_id): void
+    protected function getPostedValue(): mixed
     {
-        Logger::debug('onProfileTable()', get_class(), get_called_class());
-        
-        $value = get_user_meta($user_id, $this->getID(), true);
-        $checked = $value == $this->true_value;
-
-        echo('<tr>');
-        echo('<th><label for="' . $this->getID() . '">' . $this->getLabel() . '</label></th>');
-        echo('<td>');
-        echo('<label for="' . $this->getID() . '">');
-        echo('<input 
-                type="checkbox" 
-                id="' . $this->getID() . '" 
-                name="' . $this->getID() . '" 
-                value="true" 
-                ' . ($checked ? 'checked' : '') . '
-                ' . ($this->disabled ? 'disabled="disabled"' : '') . '
-            ></input>');
-        echo(' ' . $this->getText());
-        echo('</label>');
-        if ($this->show_description) {
-            echo('<p class="description">' . $this->getDescription() . '</p>');
-        }
-        echo('</td>');
-        echo('</tr>');
+        return array_key_exists($this->getID(), $_POST);
     }
 
     /**
-     * Run when profile is updated. Save the data here.
-     * @param $user_id The user's id. Provided by WP.
-     * @return void
+     * Get the saved value.
+     * @param int $user_id
+     * @return bool
      */
     #[Override]
-    public function onProfileUpdate($user_id): void
+    protected function getSavedValue(int $user_id): bool
     {
-        $value = $this->false_value;
-        if (array_key_exists($this->getID(), $_POST)) {
-            $checked = $_POST[$this->getID()];
-            $value = ($checked == 'true') ? $this->true_value : $this->false_value;
+        $value = parent::getSavedValue($user_id);
+        return $value == true;
+    }
+
+    /**
+     * Validate the value.
+     * @param mixed $value
+     * @return array Associative array of $id => $message.
+     */
+    #[Override]
+    protected function getValidationErrors($value): array
+    {
+        $errors = [];
+        if ($this->getRequired()) {
+            if (!$value) {
+                $errors[$this->getID() . '_error_required'] = '<strong>' . $this->getLabel() . '</strong> is a required field.';
+            }
         }
-        update_user_meta($user_id, $this->getID(), $value);
+        return $errors;
     }
 
     #endregion
