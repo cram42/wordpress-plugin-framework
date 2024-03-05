@@ -18,8 +18,6 @@ use function WPPluginFramework\{
     strsuffix
 };
 
-Logger::setLevel(__NAMESPACE__ . '\MyAccountTab', LogLevel::DEBUG);
-
 abstract class MyAccountTab extends WPFWooObject implements
     IInitEvent,
     ILoadEvent,
@@ -113,14 +111,16 @@ abstract class MyAccountTab extends WPFWooObject implements
 
         wc_nocache_headers();
 
+        $user_id = get_current_user_id();
+
         $errors = [];
-        $errors = apply_filters('wpf_myaccounttab_' . $this->getID() . '_errors', $errors);
+        $errors = apply_filters('wpf_myaccounttab_' . $this->getID() . '_errors', $errors, $user_id);
         foreach ($errors as $id => $message) {
             wc_add_notice($message, 'error', ['id' => $id]);
         }
 
         if (wc_notice_count('error') === 0) {
-            do_action('wpf_myaccounttab_' . $this->getID() . '_save', get_current_user_id());
+            do_action('wpf_myaccounttab_' . $this->getID() . '_save', $user_id);
             wc_add_notice('Saved', 'notice');
         }
     }
