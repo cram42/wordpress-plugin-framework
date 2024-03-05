@@ -4,8 +4,14 @@ namespace WPPluginFramework\Woo\UserFields;
 
 use WPPluginFramework\Logger;
 
+use function WPPluginFramework\strsuffix;
+
 abstract class TextField extends Field
 {
+    protected const TEMPLATE_MY_ACCOUNT = 'myaccount/text-field.php';
+    protected const TEMPLATE_PROFILE = 'wp-admin/user-edit/text-field.php';
+    protected const TEMPLATE_REGISTRATION = 'myaccount/form-login/text-field.php';
+
     #region Protected Properties
 
     protected ?string $placeholder = null;
@@ -14,33 +20,19 @@ abstract class TextField extends Field
     #region Public Methods
 
     /**
-     * Draw the field row for profile table.
-     * @param $user_id The user's id.
-     * @return void
+     * Get or generate the checkbox text.
+     * @return string
      */
-    #[Override]
-    public function onProfileTable($user_id): void
+    public function getPlaceholder(): string
     {
-        Logger::debug('onProfileTable()', get_class(), get_called_class());
-        $value = get_user_meta($user_id, $this->getID(), true);
-
-        echo('<tr>');
-        echo('<th><label for="' . $this->getID() . '">' . $this->getLabel() . '</label></th>');
-        echo('<td>');
-        echo('<input 
-                type="text" 
-                id="' . $this->getID() . '" 
-                name="' . $this->getID() . '" 
-                class="regular-text" 
-                placeholder="' . $this->placeholder . '" 
-                value="' . $value . '" 
-                ' . ($this->disabled ? 'disabled="disabled"' : '') . '
-            ></input>');
-        if ($this->show_description) {
-            echo('<p class="description">' . $this->getDescription() . '</p>');
+        if (!$this->placeholder) {
+            $temp = get_called_class();                                     // My\Namespace\CoolTextField
+            $temp = strsuffix($temp, '\\');                                 // CoolTextField
+            $temp = preg_replace('/Field$/', '', $temp);                    // CoolText
+            $temp = preg_replace('/([a-z0-9])([A-Z])/', '$1 $2', $temp);    // Cool Text
+            $this->placeholder = $temp;
         }
-        echo('</td>');
-        echo('</tr>');
+        return $this->placeholder;
     }
 
     #endregion
