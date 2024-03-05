@@ -8,6 +8,7 @@ define('WPF_INTERFACE_ENABLE_EVENT', __NAMESPACE__ . '\Events\IEnableEvent');
 define('WPF_INTERFACE_DISABLE_EVENT', __NAMESPACE__ . '\Events\IDisableEvent');
 define('WPF_INTERFACE_UNINSTALL_EVENT', __NAMESPACE__ . '\Events\IUninstallEvent');
 
+define('WPF_INTERFACE_INIT_EVENT', __NAMESPACE__ . '\Events\IInitEvent');
 define('WPF_INTERFACE_LOAD_EVENT', __NAMESPACE__ . '\Events\ILoadEvent');
 define('WPF_INTERFACE_REST_EVENT', __NAMESPACE__ . '\Events\IRESTInitEvent');
 
