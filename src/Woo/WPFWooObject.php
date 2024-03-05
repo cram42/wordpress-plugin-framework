@@ -1,8 +1,8 @@
 <?php
 
-namespace WPPluginFramework;
+namespace WPPluginFramework\Woo;
 
-class WPFWooObject extends WPFObject
+class WPFWooObject extends \WPPluginFramework\WPFObject
 {
-    use Traits\RequiresWooCommerce;
+    use \WPPluginFramework\Traits\RequiresWooCommerce;
 }
